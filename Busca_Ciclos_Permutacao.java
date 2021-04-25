@@ -1,5 +1,4 @@
-// Java program to find single cycle components
-// in a graph.
+// Programa em Java para encontrar ciclos usando permutação
 import java.util.*;
 
 class Busca_Ciclos_Permutacao {

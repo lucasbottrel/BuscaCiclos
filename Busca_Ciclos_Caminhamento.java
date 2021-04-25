@@ -1,43 +1,32 @@
-// Java program to print all the cycles
-// in an undirected graph
+// Programa em Java para escrever os ciclos em um grafo não direcionado
 import java.util.*;
  
-class Busca_Ciclos_Caminhamento
-{
+class Busca_Ciclos_Caminhamento {
  
     static final int N = 100000;
  
-    // variables to be used
-    // in both functions
     @SuppressWarnings("unchecked")
     static Vector<Integer>[] graph = new Vector[N];
     @SuppressWarnings("unchecked")
     static Vector<Integer>[] cycles = new Vector[N];
     static int cyclenumber;
  
-    // Function to mark the vertex with
-    // different colors for different cycles
-    static void dfs_cycle(int u, int p, int[] color,
-                       int[] mark, int[] par)
-    {
+    // Função que marca os vértices com cores diferentes para ciclos diferentes
+    static void dfs_cycle(int u, int p, int[] color, int[] mark, int[] par) {
  
-        // already (completely) visited vertex.
-        if (color[u] == 2)
-        {
+        // vértice visitado.
+        if (color[u] == 2) {
             return;
         }
  
-        // seen vertex, but was not completely visited -> cycle detected.
-        // backtrack based on parents to find the complete cycle.
-        if (color[u] == 1)
-        {
+        // vértices visitado mas não completamente -> ciclo detectado.
+        if (color[u] == 1) {
  
             cyclenumber++;
             int cur = p;
             mark[cur] = cyclenumber;
  
-            // backtrack the vertex which are
-            // in the current cycle thats found
+            // volta no vértice no ciclo atual
             while (cur != u)
             {
                 cur = par[cur];
@@ -47,14 +36,13 @@ class Busca_Ciclos_Caminhamento
         }
         par[u] = p;
  
-        // partially visited.
+        // parcialmente visitado
         color[u] = 1;
- 
-        // simple dfs on graph
+
         for (int v : graph[u])
         {
  
-            // if it has not been visited previously
+            // se não foi visitado anteriormente
             if (v == par[u])
             {
                 continue;
@@ -62,41 +50,39 @@ class Busca_Ciclos_Caminhamento
             dfs_cycle(v, u, color, mark, par);
         }
  
-        // completely visited.
+        // completamente visitado.
         color[u] = 2;
     }
  
-    // add the edges to the graph
+    // adiciona arestas no grafo
     static void addEdge(int u, int v)
     {
         graph[u].add(v);
         graph[v].add(u);
     }
  
-    // Function to print the cycles
+    // função para printar os ciclos
     static void printCycles(int edges, int mark[])
     {
  
-        // push the edges that into the
-        // cycle adjacency list
+        // empurra as arestas que estão no ciclo da lista de adjacência
         for (int i = 1; i <= edges; i++)
         {
             if (mark[i] != 0)
                 cycles[mark[i]].add(i);
         }
  
-        // print all the vertex with same cycle
+        // escreve todos os vértices de um mesmo ciclo
         for (int i = 1; i <= cyclenumber; i++)
         {
             // Print the i-th cycle
-            System.out.printf("Cycle Number %d: ", i);
+            System.out.printf("Ciclo Numero %d: ", i);
             for (int x : cycles[i])
                 System.out.printf("%d ", x);
             System.out.println();
         }
     }
- 
-    // Driver Code
+
     public static void main(String[] args)
     {
  
@@ -122,22 +108,19 @@ class Busca_Ciclos_Caminhamento
         addEdge(11, 13);
         addEdge(12, 13);
  
-        // arrays required to color the
-        // graph, store the parent of node
+        // arrays da cor do grafo, armazena os parentes do vértice
         int[] color = new int[N];
         int[] par = new int[N];
  
-        // mark with unique numbers
         int[] mark = new int[N];
  
-        // store the numbers of cycle
+        // guarda numero de ciclos
         cyclenumber = 0;
         int edges = 13;
  
-        // call DFS to mark the cycles
+        // chama a busca em profundidade com os vértices marcados
         dfs_cycle(1, 0, color, mark, par);
  
-        // function to print the cycles
         printCycles(edges, mark);
     }
 }
