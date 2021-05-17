@@ -1,129 +1,135 @@
-// Programa em Java para escrever os ciclos em um grafo não direcionado
-import java.util.*;
- 
-class Busca_Ciclos_Caminhamento {
- 
-    static final int N = 100000;
- 
-    @SuppressWarnings("unchecked")
-    static Vector<Integer>[] graph = new Vector[N];
-    @SuppressWarnings("unchecked")
-    static Vector<Integer>[] cycles = new Vector[N];
-    static int cyclenumber;
- 
-    // Função que marca os vértices com cores diferentes para ciclos diferentes
-    static void dfs_cycle(int u, int p, int[] color, int[] mark, int[] par) {
- 
-        // vértice visitado.
-        if (color[u] == 2) {
-            return;
-        }
- 
-        // vértices visitado mas não completamente -> ciclo detectado.
-        if (color[u] == 1) {
- 
-            cyclenumber++;
-            int cur = p;
-            mark[cur] = cyclenumber;
- 
-            // volta no vértice no ciclo atual
-            while (cur != u)
-            {
-                cur = par[cur];
-                mark[cur] = cyclenumber;
-            }
-            return;
-        }
-        par[u] = p;
- 
-        // parcialmente visitado
-        color[u] = 1;
+import java.util.ArrayList;
+import java.util.List;
 
-        for (int v : graph[u])
-        {
- 
-            // se não foi visitado anteriormente
-            if (v == par[u])
-            {
-                continue;
+public class Busca_Ciclos_Caminhamento {
+
+    static int[][] graph = { {1, 2}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5}, {4, 3}, {4, 6}, {3, 6}, {3, 5}, {5, 6} };
+    static List<int[]> cycles = new ArrayList<int[]>();
+
+    public static void main(String[] args) {
+
+        long inicio = System.currentTimeMillis();
+
+        for (int i = 0; i < graph.length; i++){
+            for (int j = 1; j < graph[i].length; j++){
+                findNewCycles(new int[] {graph[i][j]});
             }
-            dfs_cycle(v, u, color, mark, par);
         }
- 
-        // completamente visitado.
-        color[u] = 2;
-    }
- 
-    // adiciona arestas no grafo
-    static void addEdge(int u, int v)
-    {
-        graph[u].add(v);
-        graph[v].add(u);
-    }
- 
-    // função para printar os ciclos
-    static void printCycles(int edges, int mark[])
-    {
- 
-        // empurra as arestas que estão no ciclo da lista de adjacência
-        for (int i = 1; i <= edges; i++)
-        {
-            if (mark[i] != 0)
-                cycles[mark[i]].add(i);
+        
+        int cont = 1;
+        for (int[] cy : cycles) {
+            
+            String s = "" + cy[0];
+
+            for (int i = 1; i < cy.length; i++) s += " " + cy[i];
+
+            System.out.println("Ciclo " + cont + ": " + s);
+            cont++;
         }
- 
-        // escreve todos os vértices de um mesmo ciclo
-        for (int i = 1; i <= cyclenumber; i++)
-        {
-            // Print the i-th cycle
-            System.out.printf("Ciclo Numero %d: ", i);
-            for (int x : cycles[i])
-                System.out.printf("%d ", x);
-            System.out.println();
+
+        long fim = System.currentTimeMillis();
+
+        System.out.println("\nTEMPO GASTO: " + (fim-inicio) + "ms");
+    }
+
+    public static void findNewCycles(int[] path){
+        
+        int n = path[0];
+        int x;
+        int[] sub = new int[path.length + 1];
+
+        for (int i = 0; i < graph.length; i++){
+            for (int y = 0; y <= 1; y++){
+                if (graph[i][y] == n){
+                    
+                    x = graph[i][(y + 1) % 2];
+                    if (!visited(x, path)) {
+                        sub[0] = x;
+                        System.arraycopy(path, 0, sub, 1, path.length);
+                        findNewCycles(sub);
+
+                    } else if ((path.length > 2) && (x == path[path.length - 1])) {
+                        int[] p = normalize(path);
+                        int[] inv = invert(p);
+
+                        if (isNew(p) && isNew(inv)) {
+                            cycles.add(p);
+                        }
+                    }
+                }
+            }
         }
     }
 
-    public static void main(String[] args)
-    {
- 
-        for (int i = 0; i < N; i++)
-        {
-            graph[i] = new Vector<>();
-            cycles[i] = new Vector<>();
+    public static Boolean equals(int[] a, int[] b) {
+        Boolean ret = (a[0] == b[0]) && (a.length == b.length);
+
+        for (int i = 1; ret && (i < a.length); i++) {
+            if (a[i] != b[i]) ret = false;
         }
- 
-        // add edges
-        addEdge(1, 2);
-        addEdge(2, 3);
-        addEdge(3, 4);
-        addEdge(4, 6);
-        addEdge(4, 7);
-        addEdge(5, 6);
-        addEdge(3, 5);
-        addEdge(7, 8);
-        addEdge(6, 10);
-        addEdge(5, 9);
-        addEdge(10, 11);
-        addEdge(11, 12);
-        addEdge(11, 13);
-        addEdge(12, 13);
- 
-        // arrays da cor do grafo, armazena os parentes do vértice
-        int[] color = new int[N];
-        int[] par = new int[N];
- 
-        int[] mark = new int[N];
- 
-        // guarda numero de ciclos
-        cyclenumber = 0;
-        int edges = 13;
- 
-        // chama a busca em profundidade com os vértices marcados
-        dfs_cycle(1, 0, color, mark, par);
- 
-        printCycles(edges, mark);
+
+        return ret;
+    }
+
+    public static int[] invert(int[] path) {
+        
+        int[] p = new int[path.length];
+
+        for (int i = 0; i < path.length; i++) {
+            p[i] = path[path.length - 1 - i];
+        }
+
+        return normalize(p);
+    }
+
+    public static int[] normalize(int[] path) {
+        
+        int[] p = new int[path.length];
+        int x = smallest(path);
+        int n;
+
+        System.arraycopy(path, 0, p, 0, path.length);
+
+        while (p[0] != x) {
+            n = p[0];
+            System.arraycopy(p, 1, p, 0, p.length - 1);
+            p[p.length - 1] = n;
+        }
+
+        return p;
+    }
+
+    public static Boolean isNew(int[] path) {
+        Boolean ret = true;
+
+        for(int[] p : cycles){
+            if (equals(p, path)) {
+                ret = false;
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+    public static int smallest(int[] path){
+        int min = path[0];
+
+        for (int p : path) if (p < min) min = p;
+
+        return min;
+    }
+
+    public static Boolean visited(int n, int[] path){
+        Boolean ret = false;
+
+        for (int p : path){
+            if (p == n){
+                ret = true;
+                break;
+            }
+        }
+
+        return ret;
     }
 }
- 
-// This code is contributed by
-// sanjeev2552
